@@ -1,0 +1,290 @@
+{
+  "Aquarium": {
+    "high_angle": true,
+    "bar_pads": 3,
+    "statues": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Blue",
+      "Green"
+    ],
+    "conversations": [
+      "large",
+      "large",
+      "large"
+    ],
+    "paintings": 0,
+    "windows": 5,
+    "agents": 2
+  },
+  "Balcony": {
+    "high_angle": true,
+    "bar_pads": 0,
+    "statues": [],
+    "inspects": null,
+    "bookshelves": [],
+    "conversations": [
+      "large"
+    ],
+    "paintings": 0,
+    "windows": 2,
+    "agents": 0
+  },
+  "Ballroom": {
+    "high_angle": false,
+    "bar_pads": 0,
+    "statues": [
+      3,
+      3
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Blue",
+      "Green"
+    ],
+    "conversations": [
+      "large",
+      "large",
+      "large",
+      "large",
+      "large"
+    ],
+    "paintings": 3,
+    "windows": 6,
+    "agents": 2
+  },
+  "Courtyard": {
+    "high_angle": true,
+    "bar_pads": 0,
+    "statues": [
+      2,
+      2
+    ],
+    "inspects": 2,
+    "bookshelves": [],
+    "conversations": [
+      "large",
+      "large",
+      "small",
+      "small"
+    ],
+    "paintings": 0,
+    "windows": 4,
+    "agents": 2
+  },
+  "Gallery": {
+    "high_angle": true,
+    "bar_pads": 0,
+    "statues": [
+      2,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Green",
+      "Blue"
+    ],
+    "conversations": [
+      "large",
+      "small"
+    ],
+    "paintings": 8,
+    "windows": 2,
+    "agents": 2
+  },
+  "High-Rise": {
+    "high_angle": false,
+    "bar_pads": 0,
+    "statues": [
+      2,
+      3,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Blue",
+      "Green"
+    ],
+    "conversations": [
+      "large",
+      "large"
+    ],
+    "paintings": 1,
+    "windows": 3,
+    "agents": 2
+  },
+  "Library": {
+    "high_angle": true,
+    "bar_pads": 0,
+    "statues": [
+      3,
+      3
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Blue",
+      "Green",
+      "Yellow"
+    ],
+    "conversations": [
+      "large",
+      "large",
+      "large",
+      "large"
+    ],
+    "paintings": 3,
+    "windows": 4,
+    "agents": 3
+  },
+  "Moderne": {
+    "high_angle": false,
+    "bar_pads": 1,
+    "statues": [
+      2,
+      2,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Red",
+      "Blue",
+      "Green"
+    ],
+    "conversations": [
+      "large",
+      "large",
+      "large",
+      "large"
+    ],
+    "paintings": 0,
+    "windows": 3,
+    "agents": 3
+  },
+  "Pub": {
+    "high_angle": true,
+    "bar_pads": 3,
+    "statues": [
+      1,
+      1
+    ],
+    "inspects": 1,
+    "bookshelves": [],
+    "conversations": [
+      "large",
+      "small",
+      "small",
+      "small"
+    ],
+    "paintings": 0,
+    "windows": 3,
+    "agents": 2
+  },
+  "Redwoods": {
+    "high_angle": false,
+    "bar_pads": 1,
+    "statues": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Blue",
+      "Red",
+      "Green"
+    ],
+    "conversations": [
+      "large",
+      "small",
+      "small"
+    ],
+    "paintings": 0,
+    "windows": 5,
+    "agents": 2
+  },
+  "Teien": {
+    "high_angle": false,
+    "bar_pads": 0,
+    "statues": [
+      3,
+      3
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Green",
+      "Blue"
+    ],
+    "conversations": [
+      "small",
+      "small"
+    ],
+    "paintings": 0,
+    "windows": 5,
+    "agents": 2
+  },
+  "Double Modern": {
+    "high_angle": true,
+    "bar_pads": 0,
+    "statues": [],
+    "inspects": null,
+    "bookshelves": [],
+    "conversations": [
+      "large",
+      "large"
+    ],
+    "paintings": 0,
+    "windows": 3,
+    "agents": 1
+  },
+  "Terrace": {
+    "high_angle": true,
+    "bar_pads": 1,
+    "statues": [
+      2,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [],
+    "conversations": [
+      "large",
+      "large"
+    ],
+    "paintings": 0,
+    "windows": 3,
+    "agents": 1
+  },
+  "Veranda": {
+    "high_angle": false,
+    "bar_pads": 0,
+    "statues": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "inspects": 3,
+    "bookshelves": [
+      "Green",
+      "Red",
+      "Blue"
+    ],
+    "conversations": [
+      "small",
+      "small",
+      "small",
+      "small",
+      "small"
+    ],
+    "paintings": 0,
+    "windows": 8,
+    "agents": 3
+  }
+}
