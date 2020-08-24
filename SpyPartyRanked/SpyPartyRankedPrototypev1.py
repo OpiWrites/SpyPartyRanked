@@ -30,11 +30,7 @@ def readLog(logName):
 def getResult(replayPath):
     hummus = ReplayParser()
     replay = hummus.parse(replayPath)
-    spyName = replay.spy
-    sniperName = replay.sniper
-    result = replay.result
-    venue = replay.venue
-    print(venue, spyName, sniperName, result)
+    print(replay.venue, replay.spy, replay.sniper, replay.result)
 
 def findLogPath():
     Dir = os.getcwd()
