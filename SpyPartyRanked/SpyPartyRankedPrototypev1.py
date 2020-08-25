@@ -4,18 +4,18 @@ from ReplayParser import * ##Import parse function
 def read_log(log_name):
     
     replay_list = []
-    ranked_is_on = 0
+    ranked_is_on = False
     try:
         with gzip.open(logName, 'rt') as file:
             log_lines = file.readlines()
             for line in log_lines:
                 if line.count("Ranked mode on") and line.count("LobbyClient sending chat message") == 1: ##Turns on ranked when key phrase is found in local chat logs
-                    ranked_is_on = 1
+                    ranked_is_on = True
                     print("Ranked is on")
-                elif rankedIsOn == 1 and line.count("LobbyClient starting to lobby from IN_MATCH") == 1: ##Turns off ranked when match ends
-                    ranked_is_on = 0
+                elif rankedIsOn == True and line.count("LobbyClient starting to lobby from IN_MATCH") == 1: ##Turns off ranked when match ends
+                    ranked_is_on = False
                     print("Ranked is off")
-                elif ranked_is_on == 1 and line.count("Writing replay") == 1: ##Finds and saves replay paths while ranked is on
+                elif ranked_is_on == True and line.count("Writing replay") == 1: ##Finds and saves replay paths while ranked is on
                     replay_find = line.split(": ")
                     path_string = replay_find[2]
                     path_string = path_string.rstrip()
