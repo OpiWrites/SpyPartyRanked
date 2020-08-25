@@ -1,48 +1,48 @@
 import os
 import gzip
-from ReplayParser import * ###Import parse function
-def readLog(logName):
+from ReplayParser import * ##Import parse function
+def read_log(log_name):
     
-    replayList = []
-    rankedIsOn = 0
+    replay_list = []
+    ranked_is_on = 0
     try:
         with gzip.open(logName, 'rt') as file:
-            logLines = file.readlines()
-            for line in logLines:
+            log_lines = file.readlines()
+            for line in log_lines:
                 if line.count("Ranked mode on") and line.count("LobbyClient sending chat message") == 1: ##Turns on ranked when key phrase is found in local chat logs
-                    rankedIsOn = 1
+                    ranked_is_on = 1
                     print("Ranked is on")
                 elif rankedIsOn == 1 and line.count("LobbyClient starting to lobby from IN_MATCH") == 1: ##Turns off ranked when match ends
-                    rankedIsOn = 0
+                    ranked_is_on = 0
                     print("Ranked is off")
-                elif rankedIsOn == 1 and line.count("Writing replay") == 1: ##Finds and saves replay paths while ranked is on
-                    replayFind = line.split(": ")
-                    pathString = replayFind[2]
-                    pathString = pathString.rstrip()
-                    pathString = pathString.strip('\"')
-                    replayList.append(pathString) 
+                elif ranked_is_on == 1 and line.count("Writing replay") == 1: ##Finds and saves replay paths while ranked is on
+                    replay_find = line.split(": ")
+                    path_string = replay_find[2]
+                    path_string = path_string.rstrip()
+                    path_string = path_string.strip('\"')
+                    replay_list.append(path_string) 
                     print("Found replay, saving path")
             file.close
-            return replayList
+            return replay_list
     except:
         print("SpyParty is running!")
 
-def getResult(replayPath):
+def get_result(replay_path):
     hummus = ReplayParser()
     replay = hummus.parse(replayPath)
     print(replay.venue, replay.spy, replay.sniper, replay.result)
 
-def findLogPath():
+def find_log_path():
     Dir = os.getcwd()
-    parenDir = os.path.dirname(Dir)
-    return(parenDir + "\\logs")
+    parent_dir = os.path.dirname(Dir)
+    return(parent_dir + "\\logs")
 
-def findLog(logPath):
-    lastEdited = 0
-    logFile = ""
-    for file in os.scandir(logPath):
-        if os.path.getctime(file) > lastEdited:
-            lastEdited = os.path.getctime(file)
-            logFile = os.path.join(logPath, file)
-    return logFile    
+def find_log(log_path):
+    last_edited = 0
+    log_file = ""
+    for file in os.scandir(log_path):
+        if os.path.getctime(file) > last_edited:
+            last_edited = os.path.getctime(file)
+            log_file = os.path.join(log_path, file)
+    return log_file      
 
