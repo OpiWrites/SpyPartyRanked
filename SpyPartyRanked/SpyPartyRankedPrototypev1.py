@@ -29,7 +29,7 @@ def read_log(log_name):
 
 def get_result(replay_path):
     hummus = ReplayParser()
-    replay = hummus.parse(replayPath)
+    replay = hummus.parse(replay_path)
     print(replay.venue, replay.spy, replay.sniper, replay.result)
 
 def find_log_path():
