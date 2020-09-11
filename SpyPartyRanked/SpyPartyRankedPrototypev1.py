@@ -1,16 +1,11 @@
 import os
 import gzip
-from ReplayParser import * ##Import parse function
-def read_log(log_name):
-    
-   import os
-import gzip
 import json
 import requests
-
+from ReplayParser import * ##Import parse function
 URL = "https://f0t66fsfkd.execute-api.us-east-2.amazonaws.com/default/receive_game_data"
 
-from ReplayParser import * ##Import parse function
+
 def read_log(log_name):
     print("Read log initialized")
     replay_list = []
