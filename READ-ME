@@ -1,0 +1,16 @@
+Hi! Welcome to SpyParty Ranked. To get started, all you have to do is download the SpyPartyRanked.exe file; you don't need the SpyPartyRanked folder found in this github.
+The folder is simply for free viewing of the source code, which is packaged using pyinstaller into an exe. The exe you'll download is actually an installer to make sure that
+you have all the dependencies necessary when you try to run the program.
+
+How to install:
+1. Download the SpyPartyRanked.exe file
+2. Put that file in your SpyParty Appdata folder, which can be found at ...Appdata/Local/SpyParty. If you're having trouble and you're on Windows 7 or 8, copy and paste "%LOCALAPPDATA%\SpyParty\" into your Run command, and that should bring you right to it. You'll know you've found the right folder when you're in the SpyParty directory and you see folders called "logs" and "replays". 
+3. Once you've put the SpyPartyRanked.exe file into that directory, run it; an installer will pop up, which will create a SpyPartyRanked *folder* inside your SpyParty appdata folder.
+4. Go into the SpyPartyRanked folder and run SpyPartyRankedv1.0.exe. There won't be any confirmation that it's running, but you can check to make sure it's working by looking for it in your task manager. 
+5. After that, you're done! Now any time you'd like to play a ranked match in SpyParty, simply type "RANKEDON" in your chat window while in a match. This will flag that match as being ranked. Note that your opponent will also have to have the program and type the key phrase to actually update your ranked score. 
+
+Some notes:
+The program will only upload your results once you close SpyParty. Once you close SpyParty, please wait about 15 seconds to re-open it, as the program checks to see if it can access the log every 15 seconds.
+You can play multiple ranked sets in one instance of SpyParty, and they will be uploaded in the order you played them.
+Please ensure that you and your opponent both flag that the match is ranked at the same time. "The same time" in this case is before any games have been completed; if you flag a set as ranked, play a game, and then your opponent flags the set as ranked, the program will not be able to verify the set correctly.
+If you have any issues, please ping @OpiWrites on the SpyParty discord, or send me an email at opilordtime@gmail.com so I can look into it.
