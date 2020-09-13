@@ -144,7 +144,7 @@ def main():
     while True:
         log_path = find_log(parent_dir) #Beginning of loop set to run every 15 seconds
         print(log_path)
-		if log_path not in finished_logs:
+	if log_path not in finished_logs:
             match_dict = read_log(log_path)
             print(match_dict)
             if match_dict:
