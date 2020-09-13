@@ -3,10 +3,9 @@ import gzip
 import json
 import requests
 import time
+from ReplayParser import ReplayParser
 
-URL = "https://f0t66fsfkd.execute-api.us-east-2.amazonaws.com/default/receive_game_data"
 
-from ReplayParser import * ##Import parse function
 def read_log(log_name):
     print("Read log initialized")
     replay_list = []
@@ -128,42 +127,51 @@ def format_match(match_data):
                 formatted_match['player_2_totalscore'] += 1
         print(formatted_match['player_1_totalscore'], formatted_match['player_2_totalscore'], venue, formatted_match[venue]["player_1_score"], formatted_match[venue]["player_2_score"])
     return formatted_match
-###
-parent_dir = find_log_path()
-print(parent_dir)
 
-while True:
-    already_read = False
-    log_path = find_log(parent_dir) #Beginning of loop set to run every 15 seconds
-    print(log_path)
-    with open('read_files.txt', 'r') as file:
-        finished_logs = file.readlines()
-        for line in finished_logs:
-            if log_path + "\n" == line:
-                already_read = True
-    if already_read == False:    
-        match_dict = read_log(log_path)
-        print(match_dict)
-        if match_dict != {}:
-            for game_list in match_dict.values():
-                replay_index = 0
-                for replay in game_list:
-                    game_list[replay_index] = get_data(replay)
-                    replay_index += 1
-                print(game_list)
-            for game_list in match_dict.values():
-                for game in game_list:
-                    send_data = json.dumps(game)
-                    print(send_data)
-                    r = requests.post(url = URL, params = {'report_type':'game_result'}, data = send_data)
+def main():
+    URL = "https://f0t66fsfkd.execute-api.us-east-2.amazonaws.com/default/receive_game_data"
+    parent_dir = find_log_path()
+    print(parent_dir)
+
+    try:
+        with open('read_files.txt', 'r') as file:
+            finished_logs = {line.strip() for line in file.readlines()}
+    except FileNotFoundError:
+        with open('read_files.txt', 'w') as file:
+            file.write('read files:\n')
+            finished_logs = set()
+       
+    while True:
+        log_path = find_log(parent_dir) #Beginning of loop set to run every 15 seconds
+        print(log_path)
+	if log_path not in finished_logs:
+            match_dict = read_log(log_path)
+            print(match_dict)
+            if match_dict:
+                for game_list in match_dict.values():
+                    replay_index = 0
+                    for replay in game_list:
+                        game_list[replay_index] = get_data(replay)
+                        replay_index += 1
+                    print(game_list)
+                for game_list in match_dict.values():
+                    for game in game_list:
+                        send_data = json.dumps(game)
+                        print(send_data)
+                        r = requests.post(url = URL, params = {'report_type':'game_result'}, data = send_data)
+                        print(r)
+                    formatted_match = format_match(game_list)
+                    match_data = json.dumps(formatted_match)
+                    print(match_data)
+                    r = requests.post(url = URL, params = {'report_type':'match_result'}, data = match_data)
                     print(r)
-                formatted_match = format_match(game_list)
-                match_data = json.dumps(formatted_match)
-                print(match_data)
-                r = requests.post(url = URL, params = {'report_type':'match_result'}, data = match_data)
-                print(r)
-            with open('read_files.txt', 'a') as write_path:
-                write_path.write(log_path + "\n")
-    else:
-        print('Already read this log')
-    time.sleep(15)
+				with open('read_files.txt', 'a') as write_path:
+					write_path.write(log_path + "\n")
+					finished_logs.add(log_path)
+        else:
+            print('Already read this log')
+        time.sleep(15)
+
+        
+if __name__ == '__main__':
+    main()
