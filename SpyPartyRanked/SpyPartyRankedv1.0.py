@@ -40,8 +40,8 @@ def read_log(log_name):
             matches_parsed += 1
             match_dict['Match' + str(matches_parsed)] = replay_list
         return match_dict
-    except:
-        print("SpyParty is running!")
+    except Exception as e:
+        print("SpyParty is running! - Exception {}".format(e))
         return {}
 
 def get_data(replay_path):
