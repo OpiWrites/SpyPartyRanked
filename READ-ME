@@ -3,9 +3,9 @@ The folder is simply for free viewing of the source code, which is packaged usin
 you have all the dependencies necessary when you try to run the program.
 
 How to install:
-1. Download the SpyPartyRanked folder and place it anywhere you like.
-3. Go into the SpyPartyRanked folder and run SpyPartyRankedv1.1.exe. You should see an icon in the system tray to confirm that it's running.
-4. After that, you're done! Now any time you'd like to play a ranked match in SpyParty, simply type "RANKEDON" in your chat window while in a match. This will flag that match as being ranked. Note that your opponent will also have to have the program and type the key phrase to actually update your ranked score. 
+1. Download the SpyPartyRanked.zip file and place it anywhere you like.
+2. Unzip and go into the SpyPartyRanked folder and run SpyPartyRankedv1.1.exe. You should see an icon in the system tray to confirm that it's running.
+3. After that, you're done! Now any time you'd like to play a ranked match in SpyParty, simply type "RANKEDON" in your chat window while in a match. This will flag that match as being ranked. Note that your opponent will also have to have the program and type the key phrase to actually update your ranked score. 
 
 Some notes:
 The program will only upload your results once you close SpyParty. Once you close SpyParty, please wait about 15 seconds to re-open it, as the program checks to see if it can access the log every 15 seconds.
