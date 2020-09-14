@@ -46,7 +46,7 @@ def read_log(log_name):
         return matches, validation_key
     except:
         print("SpyParty is running!")
-        return {}, validation_key
+        return {}, ''
 
 def get_data(replay):
     replay_data = replay.to_dictionary(
@@ -154,9 +154,9 @@ def main():
                     match_data = json.dumps(formatted_match)
                     requests.post(url=URL, params={'report_type': 'match_result'}, data=match_data)
                     print(match_data)
-            with open('read_files.txt', 'a') as write_path:
-                finished_logs.add(log_path)
-                write_path.write(log_path + "\n")
+                with open('read_files.txt', 'a') as write_path:
+                    finished_logs.add(log_path)
+                    write_path.write(log_path + "\n")
 
     def end_loop(_):
         running.set_state(False)
