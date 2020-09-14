@@ -6,8 +6,9 @@ from os import walk, path
 class ReplayParser:
     class Replay:
         def __init__(
-                self, uuid, playid, date, spy_displayname, sniper_displayname, spy_username, sniper_username, result,
-                venue, variant, game_type, guests, clock, duration,
+                self, uuid, playid, date,
+                spy_displayname, sniper_displayname, spy_username, sniper_username,
+                result, venue, variant, setup, guests, clock, duration,
                 selected_missions, picked_missions, completed_missions
         ):
             x = uuid.find('=')
@@ -21,7 +22,7 @@ class ReplayParser:
             self.sniper = sniper_displayname
             self.sniper_username = sniper_username
             self.result = result
-            self.setup = game_type
+            self.setup = setup
             self.venue = venue
             self.variant = variant
             self.guests = guests
@@ -29,7 +30,44 @@ class ReplayParser:
             self.duration = duration
             self.selected_missions = selected_missions
             self.completed_missions = completed_missions
-            self.picked_missions = picked_missions if game_type[0] == 'p' else None
+            self.picked_missions = picked_missions if setup[0] == 'p' else None
+
+        def spy_win(self):
+            return self.result in {"Missions Win", "Civilian Shot"}
+
+        def sniper_win(self):
+            return self.result in {"Spy Shot", "Time Out"}
+
+        def to_dictionary(
+                self, uuid='uuid', playid='playid', date='date',
+                spy_displayname='spy_displayname', sniper_displayname='sniper_displayname',
+                spy_username='spy_username', sniper_username='sniper_username',
+                result='result', venue='venue', variant='variant', setup='setup',
+                guests='guests', clock='clock', duration='duration',
+                selected_missions='selected_missions', picked_missions='picked_missions',
+                completed_missions='completed_missions'
+        ):
+            return {
+                key: value for key, value in (
+                    (uuid, self.uuid),
+                    (playid, self.playid),
+                    (date, str(self.date)),
+                    (spy_displayname, self.spy),
+                    (sniper_displayname, self.sniper),
+                    (spy_username, self.spy_username),
+                    (sniper_username, self.sniper_username),
+                    (result, self.result),
+                    (venue, self.venue),
+                    (variant, self.variant),
+                    (setup, self.setup),
+                    (guests, self.guests),
+                    (clock, self.clock),
+                    (duration, self.duration),
+                    (selected_missions, list(self.selected_missions)),
+                    (picked_missions, list(self.picked_missions) if self.picked_missions else None),
+                    (completed_missions, list(self.completed_missions))
+                ) if key
+            }
 
     class __ReplayVersionConstants:
         def __init__(
@@ -93,6 +131,10 @@ class ReplayParser:
             return spy_display_name, sniper_display_name, spy_username, sniper_username
 
     __HEADER_DATA_MINIMUM_BYTES = 416
+    __HEADER_DATA_USERNAME_LIMIT = 33
+    __HEADER_DATA_DISPLAYNAME_LIMIT = 135
+    __HEADER_DATA_MAXIMUM_BYTES = __HEADER_DATA_MINIMUM_BYTES + 2 * (__HEADER_DATA_USERNAME_LIMIT +
+                                                                     __HEADER_DATA_DISPLAYNAME_LIMIT)
     __OFFSETS_DICT = {
         3: __ReplayVersionConstants(),
         4: __ReplayVersionConstants(
@@ -178,10 +220,14 @@ class ReplayParser:
 
     def __init__(self):
         if self.__VENUE_MAP is None:
+            self.__OFFSETS_DICT[2] = self.__OFFSETS_DICT[3]  
+            # v2 is nearly identical to v3 according to plastikqs!
+
             def endian_swap(value):
                 return unpack("<I", pack(">I", value))[0]
 
             self.__VENUE_MAP = {
+                0x8802482A: "Old High-rise",
                 endian_swap(0x26C3303A): "High-rise",
                 endian_swap(0xAAFA9659): "Ballroom",
                 endian_swap(0x2519125B): "Ballroom",
@@ -210,12 +256,17 @@ class ReplayParser:
                 0xf3e61461: "Modern"
             }
 
-    def __unpack_missions(self, sector, offset):
+    def __unpack_missions(self, sector, offset, container_type):
         data = self.__unpack_int(sector, offset)
-        missions = set()
-        for mission in self.__MISSION_OFFSETS:
-            if data & (1 << self.__MISSION_OFFSETS[mission]):
-                missions.add(mission)
+        missions = container_type()
+        if container_type == set:
+            for mission in self.__MISSION_OFFSETS:
+                if data & (1 << self.__MISSION_OFFSETS[mission]):
+                    missions.add(mission)
+        elif container_type == list:
+            for mission in self.__MISSION_OFFSETS:
+                if data & (1 << self.__MISSION_OFFSETS[mission]):
+                    missions.append(mission)
         return missions
 
     def __get_game_type(self, info):
@@ -244,9 +295,10 @@ class ReplayParser:
     def __unpack_short(self, sector, start):
         return unpack('H', self.__read_bytes(sector, start, 2))[0]
 
-    def parse(self, replay_file_path):
+    def parse(self, replay_file_path, mission_container=set):
         with open(replay_file_path, "rb") as replay_file:
-            bytes_read = bytearray(replay_file.read())
+            # Again, thanks to Checker for a fantastic suggestion!
+            bytes_read = bytearray(replay_file.read(self.__HEADER_DATA_MAXIMUM_BYTES))
 
         if len(bytes_read) < self.__HEADER_DATA_MINIMUM_BYTES:
             # raise Exception(f"A minimum of {self.__HEADER_DATA_MINIMUM_BYTES} bytes are required for replay parsing"
@@ -269,9 +321,8 @@ class ReplayParser:
 
         date = datetime.fromtimestamp(self.__unpack_int(bytes_read, offsets.timestamp))
         venue = self.__VENUE_MAP[self.__unpack_int(bytes_read, offsets.venue)]
-        if venue == 'Terrace' and date < datetime(year=2018, month=6, day=3):
-            # Differentiate old from new Terrace by game date
-            venue = 'Old Terrace'
+        if venue == 'Terrace' and self.__unpack_int(bytes_read, offsets.spyparty_version) < 6117:  # Thanks checker!
+            venue = "Old Terrace"
 
         variant = None
         if offsets.variant:
@@ -287,13 +338,13 @@ class ReplayParser:
             spy_username=name_extracts[2], sniper_username=name_extracts[3],
             result=self.__RESULT_MAP[self.__unpack_int(bytes_read, offsets.result)],
             venue=venue, variant=variant,
-            game_type=self.__get_game_type(self.__unpack_int(bytes_read, offsets.setup)),
+            setup=self.__get_game_type(self.__unpack_int(bytes_read, offsets.setup)),
             guests=self.__unpack_int(bytes_read, offsets.guests) if offsets.guests else None,
             clock=self.__unpack_int(bytes_read, offsets.clock) if offsets.clock else None,
             duration=int(self.__unpack_float(bytes_read, offsets.duration)),
-            selected_missions=self.__unpack_missions(bytes_read, offsets.missions_s),
-            picked_missions=self.__unpack_missions(bytes_read, offsets.missions_p),
-            completed_missions=self.__unpack_missions(bytes_read, offsets.missions_c)
+            selected_missions=self.__unpack_missions(bytes_read, offsets.missions_s, mission_container),
+            picked_missions=self.__unpack_missions(bytes_read, offsets.missions_p, mission_container),
+            completed_missions=self.__unpack_missions(bytes_read, offsets.missions_c, mission_container)
         )
 
     @staticmethod
