@@ -86,7 +86,7 @@ def format_match(match_data, validation_key):
         'player_2_display': match_data[0]['spy_display'],
         'player_1_totalscore': 0,
         'player_2_totalscore': 0,
-        'validation_key' : validation_key
+        'validation_key': validation_key
     }
 
     player_assignments = (
