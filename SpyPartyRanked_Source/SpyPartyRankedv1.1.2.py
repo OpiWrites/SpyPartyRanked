@@ -144,19 +144,20 @@ def main():
             print(validation_key)
             if matches:
                 for game_list in matches.values():
-                    replay_objects = [hummus.parse(replay, list) for replay in game_list]
-                    cleaned_replay_dicts = [get_data(replay) for replay in replay_objects]
-                    for game in cleaned_replay_dicts:
-                        send_data = json.dumps(game)
-                        requests.post(url=URL, params={'report_type': 'game_result'}, data=send_data)
-                        print(send_data)
-                    formatted_match = format_match(cleaned_replay_dicts, validation_key)
-                    match_data = json.dumps(formatted_match)
-                    requests.post(url=URL, params={'report_type': 'match_result'}, data=match_data)
-                    print(match_data)
-                with open('read_files.txt', 'a') as write_path:
-                    finished_logs.add(log_path)
-                    write_path.write(log_path + "\n")
+                    if game_list != []:
+                        replay_objects = [hummus.parse(replay, list) for replay in game_list]
+                        cleaned_replay_dicts = [get_data(replay) for replay in replay_objects]
+                        for game in cleaned_replay_dicts:
+                            send_data = json.dumps(game)
+                            requests.post(url=URL, params={'report_type': 'game_result'}, data=send_data)
+                            print(send_data)
+                        formatted_match = format_match(cleaned_replay_dicts, validation_key)
+                        match_data = json.dumps(formatted_match)
+                        requests.post(url=URL, params={'report_type': 'match_result'}, data=match_data)
+                        print(match_data)
+                    with open('read_files.txt', 'a') as write_path:
+                        finished_logs.add(log_path)
+                        write_path.write(log_path + "\n")
 
     def end_loop(_):
         running.set_state(False)
