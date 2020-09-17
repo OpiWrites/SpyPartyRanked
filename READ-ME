@@ -1,6 +1,4 @@
-Hi! Welcome to SpyParty Ranked. To get started, all you have to do is download the SpyPartyRanked.exe file; you don't need the SpyPartyRanked folder found in this github.
-The folder is simply for free viewing of the source code, which is packaged using pyinstaller into an exe. The exe you'll download is actually an installer to make sure that
-you have all the dependencies necessary when you try to run the program.
+Hi! Welcome to SpyParty Ranked. To get started, all you have to do is download the SpyPartyRanked.zip file!
 
 How to install:
 1. Download the SpyPartyRanked.zip file and place it anywhere you like.
