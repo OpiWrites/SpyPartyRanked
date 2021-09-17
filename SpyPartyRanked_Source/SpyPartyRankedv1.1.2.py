@@ -3,7 +3,7 @@ import gzip
 import json
 import requests
 import time
-from SpyPartyRanked_Source.ReplayParser import ReplayParser
+from ReplayParser import ReplayParser
 from infi.systray import SysTrayIcon
 from pathlib import Path
 
@@ -11,6 +11,7 @@ def read_log(log_name):
     replay_list = []
     matches = {}
     ranked_is_on = False
+    swiss_ranked_on = False
     try:
         with gzip.open(log_name, 'rt') as file:
             line1, line2, *log_lines = file.readlines()
@@ -19,36 +20,54 @@ def read_log(log_name):
             validation_key = pid + local_time
             for line in log_lines:
                 # Turns on ranked when key phrase is found in local chat logs
-                if line.count("RANKEDON") and line.count("LobbyClient sending chat message"):
+                if line.count("SWISSRANKEDON") and line.count("LobbyClient sending chat message"):
+                    swiss_ranked_on = True
+                    print("Ranked mode on")
+                    replay_list = []
+                # Turns off ranked when match ends
+                elif line.count("RANKEDON") and line.count("LobbyClient sending chat message"):
+                    ranked_is_on = True
+                    replay_list = []
+                    print("Swiss ranked mode on")
+                elif ranked_is_on and line.count("LobbyClient leaving match"):
+                    ranked_is_on = False
+                    print("Ranked turned off due to match termination.")
+                elif swiss_ranked_on and line.count("LobbyClient leaving match"):
+                    swiss_ranked_on = False
+                    print("Ranked turned off due to match termination.")
+                # Finds and saves replay paths while ranked is on
+                elif line.count("RANKEDRESUME") and line.count("LobbyClient sending chat message"):
                     ranked_is_on = True
                     print("Ranked mode on")
-                # Turns off ranked when match ends
-                elif ranked_is_on and line.count("LobbyClient leaving match"):
+                elif line.count("SWISSRANKEDRESUME") and line.count("LobbyClient sending chat message"):
+                    swiss_ranked_on = True
+                    print("Ranked mode on")
+                elif (ranked_is_on or swiss_ranked_on) and line.count("Writing replay"):
+                    replay_find = line.split(": ")
+                    print(replay_find)
+                    path_string = replay_find[2]
+                    path_string = path_string.rstrip()
+                    path_string = path_string.strip('\"')
+                    replay_list.append(path_string)
+                    print("Replay found, writing path")
+                if ranked_is_on and len(replay_list) == 12:
                     ranked_is_on = False
                     # Adds the replay list from the parsed match to the match dictionary to dilineate from other
                     # matches in the same log.
                     matches[len(matches)] = replay_list
                     #Clears replay log for other matches.
                     replay_list = []
-                    print("Ranked off, saving set data")
-
-                # Finds and saves replay paths while ranked is on
-                elif ranked_is_on and line.count("Writing replay"):
-                    replay_find = line.split(": ")
-                    path_string = replay_find[2]
-                    path_string = path_string.rstrip()
-                    path_string = path_string.strip('\"')
-                    replay_list.append(path_string)
-                    print("Replay found, writing path")
-
-        if ranked_is_on and replay_list:
-            matches[len(matches)] = replay_list
+                if swiss_ranked_on and len(replay_list) == 8:
+                    swiss_ranked_on = False
+                    matches[len(matches)] = replay_list
+                    replay_list = []
         return matches, validation_key
-    except:
+    except Exception as e:
+        print(e)
         print("SpyParty is running!")
         return {}, ''
 
-def get_data(replay):
+def get_data(replay, path):
     replay_data = replay.to_dictionary(
         spy_username='spy_user', sniper_username='sniper_user',
         spy_displayname='spy_display', sniper_displayname='sniper_display',
@@ -60,13 +79,23 @@ def get_data(replay):
         del replay_data['picked_missions']
     else:
         replay_data['picked_missions'] = str(replay_data['picked_missions']) if replay.picked_missions else []
+    timeline_data = []
+    with open(path, 'rb') as replay_file:
+        try:
+            response = requests.post('https://www.spypartydebrief.com/ranked_parsing', files={'file': replay_file})
+            if response.ok:
+                print(path, "Success")
+                response_data = response.json()
+                timeline_data = json.dumps(response_data)
+            else:
+                print(path, "Failed")
+        except Exception as e:
+            print(e)
+    replay_data['timeline'] = timeline_data
     return replay_data
 
 def find_log_path():
     return rf"{Path.home()}\AppData\Local\SpyParty\logs"
-    # Dir = os.getcwd()
-    # parent_dir = os.path.dirname(Dir)
-    # return parent_dir + "\\logs"
 
 def find_log(log_path):
     last_edited = 0
@@ -84,32 +113,27 @@ def format_match(match_data, validation_key):
         'player_1_display': match_data[0]['sniper_display'],
         'player_2_id': match_data[0]['spy_user'],
         'player_2_display': match_data[0]['spy_display'],
-        'player_1_totalscore': 0,
-        'player_2_totalscore': 0,
-        'validation_key': validation_key
+        'player_1_score': 0,
+        'player_2_score': 0,
+        'validation_key': validation_key,
+        'game_uuids': []
     }
-
     player_assignments = (
-        ('player_1_id', 'player_1_score', 'player_1_totalscore'),
-        ('player_2_id', 'player_2_score', 'player_2_totalscore'),
+        ('player_1_id', 'player_1_score'),
+        ('player_2_id', 'player_2_score'),
     )
-
     for game in match_data:
-        venue = game['venue']
-        if venue not in formatted_match:
-            formatted_match[venue] = {}
-            formatted_match[venue]['player_1_score'] = 0
-            formatted_match[venue]['player_2_score'] = 0
         spy, sniper, result = game['spy_user'], game['sniper_user'], game['result']
         for role, outcomes in (
             (sniper, ('Spy Shot', 'Time Out')),
             (spy, ('Missions Win', 'Civilian Shot')),
         ):
             if result in outcomes:
-                for player_id, player_score, player_totalscore in player_assignments:
+                for player_id, player_score in player_assignments:
                     if role == formatted_match[player_id]:
-                        formatted_match[venue][player_score] += 1
-                        formatted_match[player_totalscore] += 1
+                        formatted_match[player_score] += 1
+        formatted_match['game_uuids'].append(game['uuid'])
+        formatted_match['scoreline'] = str(formatted_match['player_1_score']) + "-" + str(formatted_match['player_2_score'])
     return formatted_match
 
 class State:
@@ -145,8 +169,14 @@ def main():
             if matches:
                 for game_list in matches.values():
                     if game_list != []:
-                        replay_objects = [hummus.parse(replay, list) for replay in game_list]
-                        cleaned_replay_dicts = [get_data(replay) for replay in replay_objects]
+                        path_dictionary = {}
+                        cleaned_replay_dicts = []
+                        for replay in game_list:
+                            replay_object = hummus.parse(replay)
+                            path_dictionary[replay] = replay_object
+                        for path in path_dictionary:
+                            replay = path_dictionary[path]
+                            cleaned_replay_dicts.append(get_data(replay, path))
                         for game in cleaned_replay_dicts:
                             send_data = json.dumps(game)
                             requests.post(url=URL, params={'report_type': 'game_result'}, data=send_data)
@@ -173,4 +203,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
