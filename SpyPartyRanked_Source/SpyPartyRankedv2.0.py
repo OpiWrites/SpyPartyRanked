@@ -1,11 +1,19 @@
+#!/usr/bin/env python3
+
 import os
 import gzip
 import json
 import requests
 import time
+import platform
 from ReplayParser import ReplayParser
-from infi.systray import SysTrayIcon
-from pathlib import Path
+
+try:
+    from infi.systray import SysTrayIcon
+    HAVE_SYSTRAY = True
+except ImportError:
+    HAVE_SYSTRAY = False
+
 
 def read_log(log_name):
     replay_list = []
@@ -94,8 +102,26 @@ def get_data(replay, path):
     replay_data['timeline'] = timeline_data
     return replay_data
 
+def spyparty_path():
+    # Environment variable override for non-standard setups.
+    if "SPYPARTYDATA" in os.environ:
+        return os.environ["SPYPARTYDATA"]
+    # Fallbacks based on platform
+    if platform.system() == "Windows":
+        # Derive storage path for spyparty from LOCALAPPDATA
+        return os.path.expandvars("%LOCALAPPDATA%\\SpyParty")
+    elif platform.system() == "Linux":
+        # Guess spypartypath assuming steam proton install.
+        return os.path.expandvars("$HOME/.steam/steam/steamapps/compatdata/329070/pfx/drive_c/users/steamuser/AppData/Local/SpyParty")
+    elif platform.system() == "Darwin":
+        # Guess spypartypath assuming PlayOnMac install with a drive named
+        # "spyparty"
+        return os.path.expandvars("$HOME/Library/PlayOnMac/wineprefix/spyparty/drive_c/users/crossover/AppData/Local/SpyParty")
+    else:
+        raise Exception("Unknown Platform! Please specify $SPYPARTYDATA")
+
 def find_log_path():
-    return rf"{Path.home()}\AppData\Local\SpyParty\logs"
+    return os.path.join(spyparty_path(), "logs")
 
 def find_log(log_path):
     last_edited = 0
@@ -192,10 +218,11 @@ def main():
     def end_loop(_):
         running.set_state(False)
 
-    stray = SysTrayIcon("k.ico", "SpyParty Ranked", (
-         ('Manual Submit', None, one_loop),
-    ), on_quit=end_loop, default_menu_index=1)
-    stray.start()
+    if HAVE_SYSTRAY:
+        stray = SysTrayIcon("k.ico", "SpyParty Ranked", (
+            ('Manual Submit', None, one_loop),
+        ), on_quit=end_loop, default_menu_index=1)
+        stray.start()
 
     while running.get_state():
         one_loop()
@@ -203,5 +230,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

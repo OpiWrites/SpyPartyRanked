@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Thin wrapper which invokes the script from the `SpyPartyRanked_Source` directory
+exec python3 "$(dirname "$(readlink -f "$0")")/SpyPartyRanked_Source/SpyPartyRankedv2.0.py"
