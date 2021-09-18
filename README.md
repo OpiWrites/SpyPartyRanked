@@ -3,8 +3,8 @@ Hi! Welcome to SpyParty Ranked. To get started, all you have to do is download t
 ## How to install
 
 Windows:
-1. Download the `SpyPartyRanked.zip` file and place it anywhere you like.
-2. Unzip and go into the `SpyPartyRanked` folder and run `SpyPartyRankedv2.0.exe`. To check to make sure it is running, find the program in Task Manager. There will be two processes.
+1. Download the `SpyPartyRanked2.0.zip` file and place it anywhere you like.
+2. Unzip and go into the `SpyPartyRanked2.0` folder and run `SpyPartyRankedv2.0.exe`. To check to make sure it is running, find the program in Task Manager. There will be two processes.
 
 Linux & MacOS:
 1. Download a copy of this repository from github: [SpyPartyRanked.zip](https://github.com/OpiWrites/SpyPartyRanked/archive/refs/heads/master.zip)
