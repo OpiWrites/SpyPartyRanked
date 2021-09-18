@@ -6,6 +6,7 @@ import json
 import requests
 import time
 import platform
+from pathlib import PureWindowsPath
 from ReplayParser import ReplayParser
 
 try:
@@ -15,6 +16,10 @@ except ImportError:
     HAVE_SYSTRAY = False
 
 
+def strip_timestamp(line):
+    return line.split(': ', maxsplit=1)[1]
+
+
 def read_log(log_name):
     replay_list = []
     matches = {}
@@ -22,13 +27,20 @@ def read_log(log_name):
     swiss_ranked_on = False
     try:
         with gzip.open(log_name, 'rt') as file:
-            line1, line2, *log_lines = file.readlines()
+            line1, line2, *log_lines = [strip_timestamp(line) for line in file.readlines()]
             pid = line1.split("PID ")[1].strip()
             local_time = line2.split("Local Time: ")[1].split(", GMT:")[0].strip()
             validation_key = pid + local_time
             for line in log_lines:
+                # The log includes the data directory SpyParty thinks it's
+                # running with, which will always be a windows path. Use paths
+                # relative to that data directory so that we can convert them to
+                # native paths.
+                if line.startswith("Data directory: "):
+                    data_directory = PureWindowsPath(line.split("Data directory: ", maxsplit=1)[1].strip())
+                    print("Data directory: " + str(data_directory))
                 # Turns on ranked when key phrase is found in local chat logs
-                if line.count("SWISSRANKEDON") and line.count("LobbyClient sending chat message"):
+                elif line.count("SWISSRANKEDON") and line.count("LobbyClient sending chat message"):
                     swiss_ranked_on = True
                     print("Ranked mode on")
                     replay_list = []
@@ -53,10 +65,15 @@ def read_log(log_name):
                 elif (ranked_is_on or swiss_ranked_on) and line.count("Writing replay"):
                     replay_find = line.split(": ")
                     print(replay_find)
-                    path_string = replay_find[2]
+                    path_string = replay_find[1]
                     path_string = path_string.rstrip()
                     path_string = path_string.strip('\"')
-                    replay_list.append(path_string)
+                    # Use a relative path to our computed data directory so that
+                    # it is platform-agnostic
+                    replay_list.append(os.path.join(
+                        spyparty_path(),
+                        PureWindowsPath(path_string).relative_to(data_directory).as_posix(),
+                    ))
                     print("Replay found, writing path")
                 if ranked_is_on and len(replay_list) == 12:
                     ranked_is_on = False
