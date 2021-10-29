@@ -10,7 +10,7 @@ class Config:
     # @contextlib.contextmanager
     def __init__(self, path, default_config=None, load_logging=False, delete_old_params=False):
         self.__path = path
-        self.__verbose = load_logging
+        self.verbose = load_logging
         self.__default = {} if default_config is None else default_config()
         self.__saved[path] = True  # the config was just initialized, so there are no changes to be saved
         if path not in self.__configs:
@@ -18,7 +18,7 @@ class Config:
                 try:
                     with open(path, "r") as f:
                         self.__configs[path] = json.load(f)
-                        if self.__verbose:
+                        if self.verbose:
                             print(f"reading config: {self.__configs[self.__path]}")
                 except Exception as e:
                     print(e)
@@ -29,18 +29,18 @@ class Config:
                     #         print("error reading config, using default:", default_config)
                 for key in self.__default:  # Allows newer versions of configs to add properties
                     if key not in self.__configs[path]:
-                        if self.__verbose:
+                        if self.verbose:
                             print(f"+ added new property: '{key}': {self.__default[key]}")
                         self.__configs[path][key] = self.__default[key]
                         self.__saved[path] = False
                 if delete_old_params:
                     for key in self.__configs[path]:
                         if key not in self.__default:
-                            if self.__verbose:
+                            if self.verbose:
                                 print(f"- removed property: '{key}': {self.__configs[path][key]}")
                             del self.__configs[path][key]
             else:
-                if self.__verbose:
+                if self.verbose:
                     print("config not found, using default:", default_config)
                 self.__configs[path] = self.__default
                 self.__saved[path] = False
@@ -56,13 +56,18 @@ class Config:
             try:
                 with open(self.__path, "w") as f:
                     json.dump(self.__configs[self.__path], f, indent=4)
-                    if self.__verbose:
+                    if self.verbose:
                         print("writing config:", self.__configs[self.__path])
             except Exception as e:
                 print("ERROR WHILE WRITING CONFIG:", e)
 
     def is_saved(self):
         return self.__saved[self.__path]
+
+    def default(self, key, item):
+        if key not in self.__configs[self.__path]:
+            self.__configs[self.__path] = item
+        return self.__configs[self.__path]
 
     def __contains__(self, item):
         return item in self.__configs[self.__path]

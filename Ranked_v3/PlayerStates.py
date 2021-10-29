@@ -18,6 +18,7 @@ class PlayerStates:
     NOT_READY = PlayerState('NOT READY', '#DC143C')
     READY_SWISS = PlayerState('READY FOR SWISS', '#50C878')
     READY_RANKED = PlayerState('READY FOR RANKED', '#50C878')
+    READY_AROUND_THE_WORLD = PlayerState('READY FOR AROUND THE WORLD', '#50C878')
 
     @staticmethod
     def SCORE_STATE(score):
