@@ -1,15 +1,10 @@
-import time
 import os
 import gzip
 import json
 import requests
-from RankedV2_2.RankedV2.ReplayParser import ReplayParser
+import time
+from ReplayParser import ReplayParser
 from pathlib import Path
-
-print('PRE systray')
-time.sleep(2)
-from infi.systray import SysTrayIcon
-
 
 def read_log(log_name):
     replay_list = []
@@ -26,14 +21,14 @@ def read_log(log_name):
                 # Turns on ranked when key phrase is found in local chat logs
                 if line.count("SWISSRANKEDON") and line.count("LobbyClient sending chat message"):
                     swiss_ranked_on = True
-                    replay_list = []
                     print("Swiss ranked mode on")
+                    replay_list = []
+                # Turns off ranked when match ends
                 elif line.count("RANKEDON") and line.count("LobbyClient sending chat message"):
                     ranked_is_on = True
-                    print("Ranked mode on")
                     replay_list = []
+                    print("Ranked mode on")
                 elif ranked_is_on and line.count("LobbyClient leaving match"):
-                    # Turns off ranked when match ends
                     ranked_is_on = False
                     print("Ranked turned off due to match termination.")
                 elif swiss_ranked_on and line.count("LobbyClient leaving match"):
@@ -46,6 +41,9 @@ def read_log(log_name):
                 elif line.count("SWISSRANKEDRESUME") and line.count("LobbyClient sending chat message"):
                     swiss_ranked_on = True
                     print("Ranked mode on")
+                elif line.count("RANKEDUNDO") and line.count("LobbyClient sending chat message"):
+                    print("Ranked game undone.")
+                    replay_list.pop(-1)
                 elif (ranked_is_on or swiss_ranked_on) and line.count("Writing replay"):
                     replay_find = line.split(": ")
                     print(replay_find)
@@ -54,6 +52,7 @@ def read_log(log_name):
                     path_string = path_string.strip('\"')
                     replay_list.append(path_string)
                     print("Replay found, writing path")
+                    print(len(replay_list))
                 if ranked_is_on and len(replay_list) == 12:
                     ranked_is_on = False
                     # Adds the replay list from the parsed match to the match dictionary to dilineate from other
@@ -71,7 +70,6 @@ def read_log(log_name):
         print("SpyParty is running!")
         return {}, ''
 
-
 def get_data(replay, path):
     replay_data = replay.to_dictionary(
         spy_username='spy_user', sniper_username='sniper_user',
@@ -84,7 +82,6 @@ def get_data(replay, path):
         del replay_data['picked_missions']
     else:
         replay_data['picked_missions'] = str(replay_data['picked_missions']) if replay.picked_missions else []
-
     timeline_data = []
     with open(path, 'rb') as replay_file:
         try:
@@ -100,11 +97,8 @@ def get_data(replay, path):
     replay_data['timeline'] = timeline_data
     return replay_data
 
-
 def find_log_path():
-    #
     return rf"{Path.home()}\AppData\Local\SpyParty\logs"
-
 
 def find_log(log_path):
     last_edited = 0
@@ -114,7 +108,6 @@ def find_log(log_path):
             last_edited = os.path.getctime(file)
             log_file = os.path.join(log_path, file)
     return log_file
-
 
 def format_match(match_data, validation_key):
     formatted_match = {
@@ -146,7 +139,6 @@ def format_match(match_data, validation_key):
         formatted_match['scoreline'] = str(formatted_match['player_1_score']) + "-" + str(formatted_match['player_2_score'])
     return formatted_match
 
-
 class State:
     def __init__(self, state):
         self.state = state
@@ -156,7 +148,6 @@ class State:
 
     def set_state(self, state):
         self.state = state
-
 
 def main():
     try:
@@ -170,7 +161,7 @@ def main():
     running = State(True)
     hummus = ReplayParser()
     parent_dir = find_log_path()
-    URL = "https://f0t66fsfkd.execute-api.us-east-2.amazonaws.com/default/receive_game_data"
+    URL = "https://cza2vp6wxh.execute-api.us-east-2.amazonaws.com/default/receive_game_data"
 
     def one_loop(*_):
         log_path = find_log(parent_dir)
@@ -180,7 +171,7 @@ def main():
             print(validation_key)
             if matches:
                 for game_list in matches.values():
-                    if game_list:
+                    if game_list != []:
                         path_dictionary = {}
                         cleaned_replay_dicts = []
                         for replay in game_list:
@@ -192,7 +183,6 @@ def main():
                         for game in cleaned_replay_dicts:
                             send_data = json.dumps(game)
                             requests.post(url=URL, params={'report_type': 'game_result'}, data=send_data)
-                            print(send_data)
                         formatted_match = format_match(cleaned_replay_dicts, validation_key)
                         match_data = json.dumps(formatted_match)
                         requests.post(url=URL, params={'report_type': 'match_result'}, data=match_data)
@@ -201,28 +191,9 @@ def main():
                         finished_logs.add(log_path)
                         write_path.write(log_path + "\n")
 
-    def end_loop(_):
-        running.set_state(False)
-
-    print('before stray')
-    time.sleep(5)
-    stray = SysTrayIcon("k.ico", "SpyParty Ranked", (
-         ('Manual Submit', None, one_loop),
-    ), on_quit=end_loop, default_menu_index=1)
-    print('after init')
-    stray.start()
-    print('after start')
-
     while running.get_state():
         one_loop()
         time.sleep(15)
 
-
 if __name__ == '__main__':
-    time.sleep(10)
-    try:
-        main()
-    except Exception as e:
-        print(e)
-    input()
-
+    main()
